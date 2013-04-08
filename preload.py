@@ -45,14 +45,14 @@ def get_origin(manifest_url):
     return ''.join([domain, path])
 
 
-def main():
-    origin = get_origin(sys.argv[1])
-    url = urlparse(sys.argv[1])
+def fetch_application(app_url):
+    origin = get_origin(app_url)
+    url = urlparse(app_url)
     metadata = {'origin': origin}
     manifest_filename = 'manifest.webapp'
-    print 'manifest: ' + sys.argv[1]
+    print 'manifest: ' + app_url
     print 'fetching manifest...'
-    manifest_url = urllib.urlopen(sys.argv[1])
+    manifest_url = urllib.urlopen(app_url)
     manifest = json.loads(manifest_url.read().decode('utf-8-sig'))
     appname = get_directory_name(manifest['name'])
     if not os.path.exists(appname):
@@ -90,5 +90,10 @@ def main():
     f.write(json.dumps(manifest, ensure_ascii=False))
 
 
+def main():
+    fetch_application(sys.argv[1])
+
+
 if __name__ == '__main__':
     main()
+
