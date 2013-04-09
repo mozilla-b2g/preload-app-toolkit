@@ -34,9 +34,12 @@ class PreloadTest(unittest.TestCase):
         assert preload.get_absolute_url(origin, icon3) == \
             'http://test.com/path-3/test.png'
 
+    def test_get_directory_name(self):
+        assert preload.get_directory_name('test!') == 'test'
+        assert preload.get_directory_name('test test') == 'testtest'
+        assert preload.get_directory_name('test! test@') == 'testtest'
+
     def test_get_origin(self):
-        print 'http://test.com/path/'
-        print preload.get_origin('http://test.com/path/test.manifest')
         assert preload.get_origin('http://test.com/path/test.manifest') == 'http://test.com/path/'
         assert preload.get_origin('http://test.com/test.manifest') == 'http://test.com/'
 

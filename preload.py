@@ -9,6 +9,9 @@ import os
 import json
 import codecs
 from urlparse import urlparse
+from zipfile import ZipFile
+import shutil
+import re
 
 
 def convert(image, mimetype):
@@ -31,7 +34,7 @@ def get_absolute_url(origin, icon):
 
 
 def get_directory_name(appname):
-    return appname.replace(' ', '').lower()
+    return re.sub(r'[\W\s]', '', appname).lower()
 
 
 def get_origin(manifest_url):
@@ -50,27 +53,41 @@ def fetch_application(app_url):
     url = urlparse(app_url)
     metadata = {'origin': origin}
     manifest_filename = 'manifest.webapp'
-    print 'manifest: ' + app_url
-    print 'fetching manifest...'
-    manifest_url = urllib.urlopen(app_url)
-    manifest = json.loads(manifest_url.read().decode('utf-8-sig'))
+
+    if url.scheme:
+        print 'manifest: ' + app_url
+        print 'fetching manifest...'
+        manifest_url = urllib.urlopen(app_url)
+        manifest = json.loads(manifest_url.read().decode('utf-8-sig'))
+    else:
+        print 'extract manifest from zip...'
+        appzip = ZipFile(app_url, 'r').read('manifest.webapp')
+        manifest = json.loads(appzip.decode('utf-8-sig'))
+
     appname = get_directory_name(manifest['name'])
     if not os.path.exists(appname):
         os.mkdir(appname)
 
-    if 'package_path' in manifest:
+    if 'package_path' in manifest or not url.scheme:
         manifest_filename = 'update.webapp'
         filename = 'application.zip'
-        print 'downloading app...'
-        urllib.urlretrieve(manifest['package_path'],
-                           filename='%s%s%s' % (appname, os.sep, filename))
-
         metadata['origin'] = 'app://%s/' % appname
-        metadata['installOrigin'] = ''.join([url.scheme, '://', url.netloc])
         metadata['type'] = 'web'
-        metadata['manifestURL'] = url.geturl()
-        metadata['etag'] = manifest_url.headers['etag'][1:-1]
-        metadata['packageEtag'] = urllib.urlopen(manifest['package_path']).headers['etag'][1:-1]
+
+        if url.scheme:
+            print 'downloading app...'
+            path = manifest['package_path']
+            urllib.urlretrieve(path,
+                               filename='%s%s%s' % (appname, os.sep, filename))
+            metadata['installOrigin'] = ''.join([url.scheme, '://', url.netloc])
+            metadata['manifestURL'] = url.geturl()
+            metadata['etag'] = manifest_url.headers['etag'][1:-1]
+            metadata['packageEtag'] = urllib.urlopen(path).headers['etag'][1:-1]
+        else:
+            print 'copying app...'
+            shutil.copyfile(app_url, '%s%s%s' % (appname, os.sep, filename))
+            metadata['manifestURL'] = ''.join([metadata['origin'],
+                                              'manifest.webapp'])
 
         manifest['package_path'] = ''.join(['/', filename])
     else:
@@ -86,7 +103,8 @@ def fetch_application(app_url):
     f.write(json.dumps(metadata))
     f.close()
 
-    f = codecs.open('%s%s%s' % (appname, os.sep, manifest_filename), 'w', 'utf-8')
+    f = codecs.open('%s%s%s' % (appname, os.sep, manifest_filename),
+                    'w', 'utf-8')
     f.write(json.dumps(manifest, ensure_ascii=False))
 
 
@@ -96,4 +114,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
