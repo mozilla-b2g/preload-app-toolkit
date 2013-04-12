@@ -48,7 +48,7 @@ def get_origin(manifest_url):
     return ''.join([domain, path])
 
 
-def fetch_application(app_url):
+def fetch_application(app_url, directory=None):
     origin = get_origin(app_url)
     url = urlparse(app_url)
     metadata = {'origin': origin}
@@ -65,8 +65,13 @@ def fetch_application(app_url):
         manifest = json.loads(appzip.decode('utf-8-sig'))
 
     appname = get_directory_name(manifest['name'])
-    if not os.path.exists(appname):
-        os.mkdir(appname)
+    manifest["shortname"] = appname
+    apppath = appname
+    if directory is not None:
+        apppath = os.path.join(directory, appname)
+
+    if not os.path.exists(apppath):
+        os.mkdir(apppath)
 
     if 'package_path' in manifest or not url.scheme:
         manifest_filename = 'update.webapp'
@@ -77,8 +82,9 @@ def fetch_application(app_url):
         if url.scheme:
             print 'downloading app...'
             path = manifest['package_path']
-            urllib.urlretrieve(path,
-                               filename='%s%s%s' % (appname, os.sep, filename))
+            urllib.urlretrieve(
+                manifest['package_path'],
+                filename=os.path.join(apppath, filename))
             metadata['installOrigin'] = ''.join([url.scheme, '://', url.netloc])
             metadata['manifestURL'] = url.geturl()
             metadata['etag'] = manifest_url.headers['etag'][1:-1]
@@ -99,13 +105,13 @@ def fetch_application(app_url):
             manifest['icons'][key] = convert(image,
                                              mimetypes.guess_type(iconurl)[0])
 
-    f = open('%s%s%s' % (appname, os.sep, 'metadata.json'), 'w')
+    f = file(os.path.join(apppath, 'metadata.json'), 'w')
     f.write(json.dumps(metadata))
     f.close()
 
-    f = codecs.open('%s%s%s' % (appname, os.sep, manifest_filename),
-                    'w', 'utf-8')
+    f = codecs.open(os.path.join(apppath, manifest_filename), 'w', 'utf-8')
     f.write(json.dumps(manifest, ensure_ascii=False))
+    return manifest
 
 
 def main():
@@ -114,3 +120,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
