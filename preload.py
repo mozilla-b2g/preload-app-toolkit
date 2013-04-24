@@ -87,8 +87,8 @@ def fetch_application(app_url, directory=None):
                 filename=os.path.join(apppath, filename))
             metadata['installOrigin'] = ''.join([url.scheme, '://', url.netloc])
             metadata['manifestURL'] = url.geturl()
-            metadata['etag'] = manifest_url.headers['etag'][1:-1]
-            metadata['packageEtag'] = urllib.urlopen(path).headers['etag'][1:-1]
+            metadata['etag'] = manifest_url.headers['etag']
+            metadata['packageEtag'] = urllib.urlopen(path).headers['etag']
         else:
             print 'copying app...'
             shutil.copyfile(app_url, '%s%s%s' % (appname, os.sep, filename))
