@@ -37,7 +37,7 @@ def get_directory_name(appname):
     return re.sub(r'[\W\s]', '', appname).lower()
 
 
-def get_origin(manifest_url):
+def split_url(manifest_url):
     path = None
     url = urlparse(manifest_url)
     domain = '%s://%s' % (url.scheme, url.netloc)
@@ -45,13 +45,13 @@ def get_origin(manifest_url):
         path = ''.join([os.path.dirname(url.path), '/'])
     else:
         path = '/'
-    return ''.join([domain, path])
+    return (domain, path)
 
 
 def fetch_application(app_url, directory=None):
-    origin = get_origin(app_url)
+    domain, path = split_url(app_url)
     url = urlparse(app_url)
-    metadata = {'origin': origin}
+    metadata = {'origin': ''.join([domain, '/'])}
     manifest_filename = 'manifest.webapp'
 
     if url.scheme:
@@ -92,14 +92,13 @@ def fetch_application(app_url, directory=None):
         else:
             print 'copying app...'
             shutil.copyfile(app_url, '%s%s%s' % (appname, os.sep, filename))
-            metadata['manifestURL'] = ''.join([metadata['origin'],
-                                              'manifest.webapp'])
+            metadata['manifestURL'] = ''.join([domain, path, 'manifest.webapp'])
 
         manifest['package_path'] = ''.join(['/', filename])
     else:
         print 'fetching icons...'
         for key in manifest['icons']:
-            iconurl = get_absolute_url(urlparse(origin),
+            iconurl = get_absolute_url(urlparse(''.join([domain, path])),
                                        urlparse(manifest['icons'][key]))
             image = urllib.urlopen(iconurl).read()
             manifest['icons'][key] = convert(image,
@@ -120,4 +119,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

@@ -40,8 +40,8 @@ class PreloadTest(unittest.TestCase):
         assert preload.get_directory_name('test! test@') == 'testtest'
 
     def test_get_origin(self):
-        assert preload.get_origin('http://test.com/path/test.manifest') == 'http://test.com/path/'
-        assert preload.get_origin('http://test.com/test.manifest') == 'http://test.com/'
+        assert preload.split_url('http://test.com/path/test.manifest')[0] == 'http://test.com'
+        assert preload.split_url('http://test.com/test.manifest')[0] == 'http://test.com'
 
 
 if __name__ == "__main__":
