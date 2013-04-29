@@ -79,7 +79,7 @@ def fetch_application(app_url, directory=None):
     if 'package_path' in manifest or not url.scheme:
         manifest_filename = 'update.webapp'
         filename = 'application.zip'
-        metadata['origin'] = 'app://%s/' % appname
+        metadata['origin'] = ''.join(['app://', appname])
         metadata['type'] = 'web'
 
         if url.scheme:
