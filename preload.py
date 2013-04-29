@@ -51,7 +51,7 @@ def split_url(manifest_url):
 def fetch_application(app_url, directory=None):
     domain, path = split_url(app_url)
     url = urlparse(app_url)
-    metadata = {'origin': ''.join([domain, '/'])}
+    metadata = {'origin': domain}
     manifest_filename = 'manifest.webapp'
 
     if url.scheme:
