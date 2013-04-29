@@ -59,6 +59,9 @@ def fetch_application(app_url, directory=None):
         print 'fetching manifest...'
         manifest_url = urllib.urlopen(app_url)
         manifest = json.loads(manifest_url.read().decode('utf-8-sig'))
+        metadata['installOrigin'] = domain
+        if 'etag' in manifest_url.headers:
+            metadata['etag'] = manifest_url.headers['etag']
     else:
         print 'extract manifest from zip...'
         appzip = ZipFile(app_url, 'r').read('manifest.webapp')
@@ -85,9 +88,7 @@ def fetch_application(app_url, directory=None):
             urllib.urlretrieve(
                 manifest['package_path'],
                 filename=os.path.join(apppath, filename))
-            metadata['installOrigin'] = ''.join([url.scheme, '://', url.netloc])
             metadata['manifestURL'] = url.geturl()
-            metadata['etag'] = manifest_url.headers['etag']
             metadata['packageEtag'] = urllib.urlopen(path).headers['etag']
         else:
             print 'copying app...'
