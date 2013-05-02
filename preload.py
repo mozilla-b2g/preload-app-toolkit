@@ -14,7 +14,7 @@ import shutil
 import re
 
 
-def convert(image, mimetype):
+def convert_icon(image, mimetype):
     return 'data:%s;base64,%s' % (mimetype, base64.b64encode(image))
 
 
@@ -47,6 +47,29 @@ def split_url(manifest_url):
         path = '/'
     return (domain, path)
 
+def fetch_icon(key, icons, domain, path, apppath):
+    #for key in manifest['icons']:
+    iconurl = get_absolute_url(urlparse(''.join([domain, path])),
+                               urlparse(icons[key]))
+    icon_base64 = '';
+    #fetch icon from url
+    if (iconurl.startswith('http') and (iconurl.endswith(".png") or iconurl.endswith(".jpg"))):
+        print key + ' from internet...',
+        subfix = "/icon.png" if iconurl.endswith(".png") else "/icon.jpg"
+        urllib.urlretrieve(iconurl, apppath + subfix)
+        with open(apppath + subfix) as fd:
+            image = fd.read()
+            icon_base64 = convert_icon(image,
+                                     mimetypes.guess_type(iconurl)[0])
+        os.remove(apppath + subfix)
+        print 'ok'
+    #fetch icon from local
+    else:
+        image = urllib.urlopen(iconurl).read()
+        icon_base64 = convert_icon(image,
+                                     mimetypes.guess_type(iconurl)[0])
+        print 'ok'
+    return icon_base64
 
 def fetch_application(app_url, directory=None):
     domain, path = split_url(app_url)
@@ -96,14 +119,10 @@ def fetch_application(app_url, directory=None):
             metadata['manifestURL'] = ''.join([domain, path, 'manifest.webapp'])
 
         manifest['package_path'] = ''.join(['/', filename])
-    else:
-        print 'fetching icons...'
-        for key in manifest['icons']:
-            iconurl = get_absolute_url(urlparse(''.join([domain, path])),
-                                       urlparse(manifest['icons'][key]))
-            image = urllib.urlopen(iconurl).read()
-            manifest['icons'][key] = convert(image,
-                                             mimetypes.guess_type(iconurl)[0])
+
+    print 'fetching icons...'
+    for key in manifest['icons']:
+        manifest['icons'][key] = fetch_icon(key, manifest['icons'], domain, path, apppath)
 
     f = file(os.path.join(apppath, 'metadata.json'), 'w')
     f.write(json.dumps(metadata))
