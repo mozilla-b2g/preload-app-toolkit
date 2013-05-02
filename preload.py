@@ -30,7 +30,11 @@ def get_absolute_url(origin, icon):
         path = icon.path
     else:
         path = '%s/%s' % (os.path.dirname(origin.path), icon.path)
-    return '%s://%s%s' % (origin.scheme, origin.netloc, path)
+    # for packaged app from 'marketplace.firefox.comhttps:'
+    if (origin.netloc.endswith('https:')):
+        return path
+    else:
+        return '%s://%s%s' % (origin.scheme, origin.netloc, path)
 
 
 def get_directory_name(appname):
@@ -48,13 +52,16 @@ def split_url(manifest_url):
     return (domain, path)
 
 def fetch_icon(key, icons, domain, path, apppath):
-    #for key in manifest['icons']:
     iconurl = get_absolute_url(urlparse(''.join([domain, path])),
                                urlparse(icons[key]))
     icon_base64 = '';
+    if iconurl[0] == '/':
+        print 'localy...'
+        icon_base64 = iconurl
     #fetch icon from url
-    if (iconurl.startswith('http') and (iconurl.endswith(".png") or iconurl.endswith(".jpg"))):
-        print key + ' from internet...',
+    elif (iconurl.startswith('http') and
+          (iconurl.endswith(".png") or iconurl.endswith(".jpg"))):
+        print key + 'from internet...',
         subfix = "/icon.png" if iconurl.endswith(".png") else "/icon.jpg"
         urllib.urlretrieve(iconurl, apppath + subfix)
         with open(apppath + subfix) as fd:
