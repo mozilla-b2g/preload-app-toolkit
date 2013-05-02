@@ -105,6 +105,9 @@ def fetch_application(app_url, directory=None):
             manifest['icons'][key] = convert(image,
                                              mimetypes.guess_type(iconurl)[0])
 
+    # add manifestURL for update
+    metadata['manifestURL'] = app_url
+
     f = file(os.path.join(apppath, 'metadata.json'), 'w')
     f.write(json.dumps(metadata))
     f.close()
