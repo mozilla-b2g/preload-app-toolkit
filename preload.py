@@ -22,19 +22,20 @@ def has_scheme(url):
     return bool(url.scheme)
 
 
-def get_absolute_url(origin, icon):
-    path = None
+def get_absolute_url(domain, path, icon):
+    icon_path = None
+    origin = urlparse(''.join([domain, path]))
     if has_scheme(icon):
         return icon.geturl()
     if icon.path[0] == '/':
-        path = icon.path
+        icon_path = icon.path
     else:
-        path = '%s/%s' % (os.path.dirname(origin.path), icon.path)
-    # for packaged app from 'marketplace.firefox.comhttps:'
-    if (origin.netloc.endswith('https:')):
-        return path
+        icon_path = '%s/%s' % (os.path.dirname(origin.path), icon.path)
+
+    if(path.startswith('http')):
+        return icon_path
     else:
-        return '%s://%s%s' % (origin.scheme, origin.netloc, path)
+        return '%s://%s%s' % (origin.scheme, origin.netloc, icon_path)
 
 
 def get_directory_name(appname):
@@ -52,16 +53,17 @@ def split_url(manifest_url):
     return (domain, path)
 
 def fetch_icon(key, icons, domain, path, apppath):
-    iconurl = get_absolute_url(urlparse(''.join([domain, path])),
+    iconurl = get_absolute_url(domain, path,
                                urlparse(icons[key]))
+    print iconurl
     icon_base64 = '';
     if iconurl[0] == '/':
-        print 'localy...'
+        print 'locally...'
         icon_base64 = iconurl
     #fetch icon from url
     elif (iconurl.startswith('http') and
           (iconurl.endswith(".png") or iconurl.endswith(".jpg"))):
-        print key + 'from internet...',
+        print key + ' from internet...',
         subfix = "/icon.png" if iconurl.endswith(".png") else "/icon.jpg"
         urllib.urlretrieve(iconurl, apppath + subfix)
         with open(apppath + subfix) as fd:
