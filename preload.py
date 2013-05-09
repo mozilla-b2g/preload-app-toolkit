@@ -145,8 +145,20 @@ def fetch_application(app_url, directory=None):
 
 
 def main():
-    fetch_application(sys.argv[1])
-
+    if (len(sys.argv)>1):
+        fetch_application(sys.argv[1])
+    else:
+        # automatically read and compose customized webapp from list
+        # support csv like list format with ',' separator, ex:
+        #
+        # Youtube,http://m.youtube.com/mozilla_youtube_webapp
+        with open('list') as fd:
+            while True:
+                line = fd.readline()
+                if (len(line.split(','))>1):
+                    fetch_application(line.split(',')[1].rstrip('\n'))
+                else:
+                    break;
 
 if __name__ == '__main__':
     main()
