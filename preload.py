@@ -13,6 +13,9 @@ from zipfile import ZipFile
 import shutil
 import re
 
+APPCACHE_LOCAL_DEFAULT_PATH = 'cache/'
+APPCACHE_SUBFIX_WHITELIST = ['html', 'ico', 'css', 'js', 'png', 'jpn',
+                             'gif','properties']
 
 def convert_icon(image, mimetype):
     return 'data:%s;base64,%s' % (mimetype, base64.b64encode(image))
@@ -79,7 +82,91 @@ def fetch_icon(key, icons, domain, path, apppath):
         print 'ok'
     return icon_base64
 
-def fetch_application(app_url, directory=None):
+
+def fetch_resource(base_path, local_dir, resource_path):
+    """
+    fetch resource described in appcache manifest
+    """
+    try:
+        # handle offline path
+        if resource_path.startswith('/ '):
+                resource_path = resource_path.lstrip('/ ').strip()
+
+        print 'get resource ' + resource_path + '...',
+
+        # not pre-fetch HTTP(S) URL resources
+        if not resource_path.startswith('http'):
+            local_resource_path = ''.join([local_dir, resource_path])
+            local_resource_dir = '/'.join(local_resource_path.split('/')[:-1])
+            if not os.path.exists(local_resource_dir):
+                os.makedirs(local_resource_dir)
+
+            resource_url = os.path.join(base_path,resource_path)
+            urllib.urlretrieve(resource_url, local_resource_path)
+            print 'done'
+        else:
+            print 'skip'
+    except IOError as e:
+        print 'IO failed ', e
+    except urllib.URLError as e:
+        print 'fetch failed ', e
+
+def fetch_appcache(domain, appcache_path, apppath):
+    """
+    fetch appcache file described in manifest.webapp
+
+    output:
+
+    [appname]/cache/[name].appcache
+    [appname]/cache/[resources] (if defined)
+    """
+    local_appcache_path = ''
+    relative_path = ''
+    try:
+        # dest appcache file dir
+        local_dir = os.path.join(apppath, APPCACHE_LOCAL_DEFAULT_PATH)
+        print local_dir
+        if not os.path.exists(local_dir):
+            os.makedirs(local_dir)
+
+        origin = urlparse(domain)
+        base_path = '%s://%s' % (origin.scheme, origin.netloc)
+        local_appcache_path = os.path.join(local_dir, appcache_path.split('/')[-1])
+
+        print 'from ' + ''.join([base_path, appcache_path])
+        # absolute url
+        appcache_url = ''.join([base_path, appcache_path])
+
+        # prepared for resource fetching
+        relative_path = '/'.join(appcache_url.split('/')[:-1])
+        # relative url
+        if(not appcache_path.startswith('/')):
+            appcache_url = relative_path
+
+        print 'save to '+ local_appcache_path,
+        urllib.urlretrieve(appcache_url, local_appcache_path)
+        print ' ok'
+
+        # retrieve resources from appcache
+        with open(local_appcache_path) as fd:
+            lines = fd.readlines()
+            for line in lines:
+                if (line and line.split('.')[-1].rstrip('\n')
+                             in APPCACHE_SUBFIX_WHITELIST):
+                    fetch_resource(relative_path, local_dir, line.rstrip('\n'))
+    except Exception as e:
+        print 'fetch failed ', e
+
+def fetch_webapp(app_url, directory=None):
+    """
+    get webapp file and parse for preinstalled webapp
+
+    output:
+
+    [appname]/manifest.webapp
+    [appname]/metadata.json
+    [appname]/cache/ (if defined)
+    """
     domain, path = split_url(app_url)
     url = urlparse(app_url)
     metadata = {'origin': domain}
@@ -132,6 +219,10 @@ def fetch_application(app_url, directory=None):
     for key in manifest['icons']:
         manifest['icons'][key] = fetch_icon(key, manifest['icons'], domain, path, apppath)
 
+    if 'appcache_path' in manifest:
+        print 'fetching appcache...',
+        fetch_appcache(domain, manifest['appcache_path'], apppath)
+
     # add manifestURL for update
     metadata['manifestURL'] = app_url
 
@@ -146,7 +237,7 @@ def fetch_application(app_url, directory=None):
 
 def main():
     if (len(sys.argv)>1):
-        fetch_application(sys.argv[1])
+        fetch_webapp(sys.argv[1])
     else:
         # automatically read and compose customized webapp from list
         # support csv like list format with ',' separator, ex:
@@ -156,7 +247,7 @@ def main():
             while True:
                 line = fd.readline()
                 if (len(line.split(','))>1):
-                    fetch_application(line.split(',')[1].rstrip('\n'))
+                    fetch_webapp(line.split(',')[1].rstrip('\n'))
                 else:
                     break;
 
