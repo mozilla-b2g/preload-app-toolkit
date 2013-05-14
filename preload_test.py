@@ -11,7 +11,7 @@ class PreloadTest(unittest.TestCase):
     def test_convert(self):
         test_data = 'fakedata'
         encode = base64.b64encode(test_data)
-        result = preload.convert(test_data, 'image/png')
+        result = preload.convert_icon(test_data, 'image/png')
         assert result == 'data:image/png;base64,' + encode
 
     def test_has_scheme(self):
@@ -23,15 +23,16 @@ class PreloadTest(unittest.TestCase):
         assert preload.has_scheme(relative_path) == False
 
     def test_get_absolute_path(self):
-        origin = urlparse('http://test.com/path-1/path-2/')
+        domain = 'http://test.com/'
+        path = 'path-1/path-2/'
         icon1 = urlparse('test.png')
         icon2 = urlparse('/test.png')
         icon3 = urlparse('http://test.com/path-3/test.png')
-        assert preload.get_absolute_url(origin, icon1) == \
+        assert preload.get_absolute_url(domain, path, icon1) == \
             'http://test.com/path-1/path-2/test.png'
-        assert preload.get_absolute_url(origin, icon2) == \
+        assert preload.get_absolute_url(domain, path, icon2) == \
             'http://test.com/test.png'
-        assert preload.get_absolute_url(origin, icon3) == \
+        assert preload.get_absolute_url(domain, path, icon3) == \
             'http://test.com/path-3/test.png'
 
     def test_get_directory_name(self):
