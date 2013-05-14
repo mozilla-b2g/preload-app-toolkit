@@ -1,0 +1,3 @@
+script: "python preload_test.py"
+python:
+  - "2.7"
