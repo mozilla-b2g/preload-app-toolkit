@@ -15,7 +15,7 @@ import re
 
 APPCACHE_LOCAL_DEFAULT_PATH = 'cache/'
 APPCACHE_SUBFIX_WHITELIST = ['html', 'ico', 'css', 'js', 'png', 'jpn',
-                             'gif','properties']
+                             'gif','properties','AUTHORS','svg','json']
 
 def convert_icon(image, mimetype):
     return 'data:%s;base64,%s' % (mimetype, base64.b64encode(image))
