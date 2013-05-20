@@ -187,7 +187,6 @@ def fetch_webapp(app_url, directory=None):
         manifest = json.loads(appzip.decode('utf-8-sig'))
 
     appname = get_directory_name(manifest['name'])
-    manifest["shortname"] = appname
     apppath = appname
     if directory is not None:
         apppath = os.path.join(directory, appname)
