@@ -6,7 +6,7 @@ Pre-bundled webapp are not quite the same as usual webapp, since Pre-bundled web
 It have to store linked icon to buildin base-64 strings,
 provide correspondent matadata.json, prefetched appcache..., etc.
 
-Gaia Preload App script probide a `preload.py` script that help build pre-bundled webapp from a given .webapp URL.
+Gaia Preload App script provide a `preload.py` script that help build pre-bundled webapp from a given .webapp URL.
 
 ## Usage
 
