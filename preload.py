@@ -14,8 +14,9 @@ import shutil
 import re
 
 APPCACHE_LOCAL_DEFAULT_PATH = 'cache/'
+APPCACHE_LOCAL_DEFAULT_NAME = 'manifest.appcache'
 APPCACHE_SUBFIX_WHITELIST = ['html', 'ico', 'css', 'js', 'png', 'jpn',
-                             'gif','properties']
+                             'gif','properties','AUTHORS','svg','json']
 
 def convert_icon(image, mimetype):
     return 'data:%s;base64,%s' % (mimetype, base64.b64encode(image))
@@ -131,7 +132,7 @@ def fetch_appcache(domain, appcache_path, apppath):
 
         origin = urlparse(domain)
         base_path = '%s://%s' % (origin.scheme, origin.netloc)
-        local_appcache_path = os.path.join(local_dir, appcache_path.split('/')[-1])
+        local_appcache_path = os.path.join(local_dir, APPCACHE_LOCAL_DEFAULT_NAME)
 
         print 'from ' + ''.join([base_path, appcache_path])
         # absolute url
