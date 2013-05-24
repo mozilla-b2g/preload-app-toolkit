@@ -89,24 +89,24 @@ def fetch_resource(base_path, local_dir, resource_path):
     fetch resource described in appcache manifest
     """
     try:
-        # handle offline path
+        # handle path in OFFLINE section
         if resource_path.startswith('/ '):
                 resource_path = resource_path.lstrip('/ ').strip()
 
         print 'get resource ' + resource_path + '...',
 
-        # not pre-fetch HTTP(S) URL resources
-        if not resource_path.startswith('http'):
-            local_resource_path = ''.join([local_dir, resource_path])
-            local_resource_dir = '/'.join(local_resource_path.split('/')[:-1])
-            if not os.path.exists(local_resource_dir):
-                os.makedirs(local_resource_dir)
+        local_resource_path = ''.join([local_dir, resource_path])
+        local_resource_dir = '/'.join(local_resource_path.split('/')[:-1])
+        if not os.path.exists(local_resource_dir):
+            os.makedirs(local_resource_dir)
 
+        if not resource_path.startswith('http'):
             resource_url = os.path.join(base_path,resource_path)
-            urllib.urlretrieve(resource_url, local_resource_path)
-            print 'done'
-        else:
-            print 'skip'
+        else: #pre-fetch HTTP(S) URL resources
+            resource_url = resource_path
+
+        urllib.urlretrieve(resource_url, local_resource_path)
+        print 'done'
     except IOError as e:
         print 'IO failed ', e
     except urllib.URLError as e:
