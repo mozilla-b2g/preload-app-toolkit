@@ -273,7 +273,12 @@ def fetch_webapp(app_url, directory=None):
 
 
 def main():
-    if (len(sys.argv) > 1):
+    # icon convertion script
+    if (len(sys.argv) == 3 and sys.argv[1] == "--icon"):
+        result = fetch_icon_from_url(sys.argv[2])
+        print result.replace('/', '\/')
+    # fetch single webapp
+    elif (len(sys.argv) > 1):
         fetch_webapp(sys.argv[1])
     else:
         # automatically read and compose customized webapp from list
