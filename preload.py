@@ -89,24 +89,21 @@ def fetch_resource(base_path, local_dir, resource_path):
     fetch resource described in appcache manifest
     """
     try:
-        # handle offline path
-        if resource_path.startswith('/ '):
-                resource_path = resource_path.lstrip('/ ').strip()
-
         print 'get resource ' + resource_path + '...',
 
-        # not pre-fetch HTTP(S) URL resources
-        if not resource_path.startswith('http'):
-            local_resource_path = ''.join([local_dir, resource_path])
-            local_resource_dir = '/'.join(local_resource_path.split('/')[:-1])
-            if not os.path.exists(local_resource_dir):
-                os.makedirs(local_resource_dir)
+        # create directories if not exist
+        local_resource_path = ''.join([local_dir, resource_path])
+        local_resource_dir = '/'.join(local_resource_path.split('/')[:-1])
+        if not os.path.exists(local_resource_dir):
+            os.makedirs(local_resource_dir)
 
+        if not resource_path.startswith('http'):
             resource_url = os.path.join(base_path,resource_path)
-            urllib.urlretrieve(resource_url, local_resource_path)
-            print 'done'
-        else:
-            print 'skip'
+        else: #pre-fetch HTTP(S) URL resources
+            resource_url = resource_path
+
+        urllib.urlretrieve(resource_url, local_resource_path)
+        print 'done'
     except IOError as e:
         print 'IO failed ', e
     except urllib.URLError as e:
@@ -123,10 +120,18 @@ def fetch_appcache(domain, appcache_path, apppath):
     """
     local_appcache_path = ''
     relative_path = ''
+
+    # Edge case: detect if has indirect path
+    # which means we have to patch the appcache file
+    INDIRECT_PATH = ''
+    if (appcache_path.startswith('/') and len(appcache_path.split('/')) > 2):
+        INDIRECT_PATH = '/'.join(appcache_path.split('/')[1:-1])+'/'
+    if INDIRECT_PATH:
+        print '**with indirect path:'+INDIRECT_PATH+'**',
+
     try:
         # dest appcache file dir
         local_dir = os.path.join(apppath, APPCACHE_LOCAL_DEFAULT_PATH)
-        print local_dir
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
 
@@ -138,11 +143,9 @@ def fetch_appcache(domain, appcache_path, apppath):
         # absolute url
         appcache_url = ''.join([base_path, appcache_path])
 
-        # prepared for resource fetching
-        relative_path = '/'.join(appcache_url.split('/')[:-1])
         # relative url
         if(not appcache_path.startswith('/')):
-            appcache_url = relative_path
+            appcache_url = '/'.join(appcache_url.split('/')[:-1])
 
         print 'save to '+ local_appcache_path,
         urllib.urlretrieve(appcache_url, local_appcache_path)
@@ -151,10 +154,32 @@ def fetch_appcache(domain, appcache_path, apppath):
         # retrieve resources from appcache
         with open(local_appcache_path) as fd:
             lines = fd.readlines()
+            newlines = []
             for line in lines:
                 if (line and line.split('.')[-1].rstrip('\n')
                              in APPCACHE_SUBFIX_WHITELIST):
-                    fetch_resource(relative_path, local_dir, line.rstrip('\n'))
+                    resource_path = line.rstrip('\n')
+
+                    mod_line = resource_path
+                    if INDIRECT_PATH and not resource_path.startswith('/ '):
+                        resource_path = INDIRECT_PATH + resource_path
+                        mod_line = resource_path
+
+                    # handle path in OFFLINE section
+                    if resource_path.startswith('/ '):
+                        # replace resource path
+                        resource_path = resource_path.split(' ')[1].strip()
+                        mod_line = resource_path.split(' ')[0].strip() + ' ' + resource_path.split(' ')[1].strip()
+
+                    fetch_resource(base_path, local_dir, resource_path)
+                    newlines.append(mod_line)
+                else:
+                    newlines.append(line)
+
+        if INDIRECT_PATH:
+            with open(local_appcache_path, 'w') as fd:
+                print 'overwrite new appcache'
+                fd.write('\n'.join(newlines))
     except Exception as e:
         print 'fetch failed ', e
 
