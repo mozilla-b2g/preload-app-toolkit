@@ -223,7 +223,6 @@ def fetch_webapp(app_url, directory=None):
         manifest_filename = 'update.webapp'
         filename = 'application.zip'
         metadata['origin'] = ''.join(['app://', appname])
-        metadata['type'] = 'web'
 
         if url.scheme:
             print 'downloading app...'
