@@ -18,7 +18,7 @@ Find a webapp URL that want to bundled with, and run the command:
 
 It will generate a folder with target webapp name.
 
-### batch process
+### batch process to fetch multiple webapp
 
 You can form a `list` file that batched the process. The format is
 
@@ -31,3 +31,9 @@ Put `preload.py` script with `list` file in the same folder, then run the comman
     $ python preload.py
 
 `preload.py` script will parse the `list` file and do the conversion for you.
+
+### convert web icon to base64 string
+
+fetch icon from URL and convert it to base64 string
+
+    $ python preload.py --icon http://<icon url>

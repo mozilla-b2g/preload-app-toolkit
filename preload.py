@@ -18,13 +18,20 @@ APPCACHE_LOCAL_DEFAULT_NAME = 'manifest.appcache'
 APPCACHE_SUBFIX_WHITELIST = ['html', 'ico', 'css', 'js', 'png', 'jpn',
                              'gif','properties','AUTHORS','svg','json']
 
-def convert_icon(image, mimetype):
-    return 'data:%s;base64,%s' % (mimetype, base64.b64encode(image))
-
-
 def has_scheme(url):
     return bool(url.scheme)
 
+def retrieve_from_url(url, target):
+    """
+    save file from url
+    """
+    urllib.urlretrieve(url, target)
+
+def open_from_url(url):
+    """
+    return file object from url
+    """
+    return urllib.urlopen(url)
 
 def get_absolute_url(domain, path, icon):
     icon_path = None
@@ -56,6 +63,13 @@ def split_url(manifest_url):
         path = '/'
     return (domain, path)
 
+def convert_icon(image, mimetype):
+    return 'data:%s;base64,%s' % (mimetype, base64.b64encode(image))
+
+def fetch_icon_from_url(url):
+    image = open_from_url(url).read()
+    return convert_icon(image, mimetypes.guess_type(url)[0])
+
 def fetch_icon(key, icons, domain, path, apppath):
     iconurl = get_absolute_url(domain, path,
                                urlparse(icons[key]))
@@ -68,7 +82,7 @@ def fetch_icon(key, icons, domain, path, apppath):
           (iconurl.endswith(".png") or iconurl.endswith(".jpg"))):
         print key + ' from internet...',
         subfix = "/icon.png" if iconurl.endswith(".png") else "/icon.jpg"
-        urllib.urlretrieve(iconurl, apppath + subfix)
+        retrieve_from_url(iconurl, apppath + subfix)
         with open(apppath + subfix) as fd:
             image = fd.read()
             icon_base64 = convert_icon(image,
@@ -77,9 +91,7 @@ def fetch_icon(key, icons, domain, path, apppath):
         print 'ok'
     #fetch icon from local
     else:
-        image = urllib.urlopen(iconurl).read()
-        icon_base64 = convert_icon(image,
-                                     mimetypes.guess_type(iconurl)[0])
+        icon_base64 = fetch_icon_from_url(iconurl)
         print 'ok'
     return icon_base64
 
@@ -102,7 +114,7 @@ def fetch_resource(base_path, local_dir, resource_path):
         else: #pre-fetch HTTP(S) URL resources
             resource_url = resource_path
 
-        urllib.urlretrieve(resource_url, local_resource_path)
+        retrieve_from_url(resource_url, local_resource_path)
         print 'done'
     except IOError as e:
         print 'IO failed ', e
@@ -148,7 +160,7 @@ def fetch_appcache(domain, appcache_path, apppath):
             appcache_url = '/'.join(appcache_url.split('/')[:-1])
 
         print 'save to '+ local_appcache_path,
-        urllib.urlretrieve(appcache_url, local_appcache_path)
+        retrieve_from_url(appcache_url, local_appcache_path)
         print ' ok'
 
         # retrieve resources from appcache
@@ -191,7 +203,8 @@ def fetch_webapp(app_url, directory=None):
 
     [appname]/manifest.webapp
     [appname]/metadata.json
-    [appname]/cache/ (if defined)
+    [appname]/update.webapp (if package_path is defined)
+    [appname]/cache/ (if appcache_path is defined)
     """
     domain, path = split_url(app_url)
     url = urlparse(app_url)
@@ -201,7 +214,7 @@ def fetch_webapp(app_url, directory=None):
     if url.scheme:
         print 'manifest: ' + app_url
         print 'fetching manifest...'
-        manifest_url = urllib.urlopen(app_url)
+        manifest_url = open_from_url(app_url)
         manifest = json.loads(manifest_url.read().decode('utf-8-sig'))
         metadata['installOrigin'] = domain
         if 'etag' in manifest_url.headers:
@@ -227,11 +240,11 @@ def fetch_webapp(app_url, directory=None):
         if url.scheme:
             print 'downloading app...'
             path = manifest['package_path']
-            urllib.urlretrieve(
+            retrieve_from_url(
                 manifest['package_path'],
-                filename=os.path.join(apppath, filename))
+                os.path.join(apppath, filename))
             metadata['manifestURL'] = url.geturl()
-            metadata['packageEtag'] = urllib.urlopen(path).headers['etag']
+            metadata['packageEtag'] = open_from_url(path).headers['etag']
         else:
             print 'copying app...'
             shutil.copyfile(app_url, '%s%s%s' % (appname, os.sep, filename))
@@ -260,7 +273,12 @@ def fetch_webapp(app_url, directory=None):
 
 
 def main():
-    if (len(sys.argv)>1):
+    # icon convertion script
+    if (len(sys.argv) == 3 and sys.argv[1] == "--icon"):
+        result = fetch_icon_from_url(sys.argv[2])
+        print result.replace('/', '\/')
+    # fetch single webapp
+    elif (len(sys.argv) > 1):
         fetch_webapp(sys.argv[1])
     else:
         # automatically read and compose customized webapp from list
