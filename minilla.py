@@ -129,12 +129,19 @@ def profiles(name):
     else:
         return "Not Found", 404
 
+@route('/webapp')
+@view('webapp')
+def webapp():
+    return dict()
+
 @route('/apps/', method='post')
 def apps():
-    app_url = request.forms.get('url')
-    manifest = preload.fetch_application(app_url, "external-apps")
-    return {'name': manifest['shortname']}
-
+    app_url = request.forms.get('app_url')
+    manifest = preload.fetch_webapp(app_url, os.path.join("gaia-raw", "external-apps"))
+    return {'name': manifest['name']}
 
 # run server
-run(host='localhost', port=8000)
+if __name__ == '__main__':
+    import bottle
+    app = bottle.app()
+    run(app, host='localhost', port=8000, reloader=True)
