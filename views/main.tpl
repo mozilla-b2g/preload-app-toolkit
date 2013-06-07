@@ -28,6 +28,7 @@
       <li><a href="/webapp">webapp convertor</a></li>
       <li><a href="/icon">icon convertor</a></li>
       <li><a href="/homescreen">homescreen</a></li>
+      <li><a href="/bookmark">bookmark</a></li>
       </ul>
       </div>
     </div>
