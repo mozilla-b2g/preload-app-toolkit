@@ -104,6 +104,12 @@ def apps():
     manifest = preload.fetch_webapp(app_url, DEFAULT_EXTERNAL_APP_PATH)
     return {'name': manifest['name']}
 
+#bookmark manager
+@route('/bookmark')
+@view('bookmark')
+def bookmark():
+  return dict()
+
 # run server
 if __name__ == '__main__':
     run(application, host='localhost', port=8000, reloader=True)
