@@ -45,6 +45,6 @@ We'd developing the Minilla web UI that help people ease the customization work 
 
 The Minilla only depends on python, so you can run
 
-    $ python minilla.py
+    $ python wsgi.py
     
 open browser to http://localhost:8000 and use it.
