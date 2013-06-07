@@ -37,3 +37,14 @@ Put `preload.py` script with `list` file in the same folder, then run the comman
 fetch icon from URL and convert it to base64 string
 
     $ python preload.py --icon http://<icon url>
+
+
+# Experimental: Minilla web UI
+
+We'd developing the Minilla web UI that help people ease the customization work with web interface.
+
+The Minilla only depends on python, so you can run
+
+    $ python minilla.py
+    
+open browser to http://localhost:8000 and use it.
