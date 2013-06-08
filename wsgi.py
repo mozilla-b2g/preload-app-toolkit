@@ -11,14 +11,34 @@ import os, glob, json
 # application object required by wsgi, appfog use gunicorn with wsgi
 application = app()
 # setup environment
-DEFAULT_EXTERNAL_APP_PATH = os.path.join("gaia-raw", "external-apps")
+GAIA_DISTRIBUTION_DIR = 'distribution'
+GAIA_RAW_DIR = 'gaia-raw'
+DEFAULT_EXTERNAL_APP_PATH = os.path.join(GAIA_RAW_DIR, 'external-apps')
 if not os.path.exists(DEFAULT_EXTERNAL_APP_PATH):
     os.makedirs(DEFAULT_EXTERNAL_APP_PATH)
+BUILD_IN_APPS = [
+    ["apps", "dialer"],
+    ["apps", "sms"],
+    ["apps", "contacts"],
+    ["apps", "browser"],
+    ["apps", "camera"],
+    ["apps", "gallery"],
+    ["apps", "fm"],
+    ["apps", "settings"],
+    ["external-apps", "marketplace"],
+    ["apps", "calendar"],
+    ["apps", "clock"],
+    ["apps", "costcontrol"],
+    ["apps", "email"],
+    ["apps", "music"],
+    ["apps", "video"]
+]
 
 @route('/')
 @view('index')
 def index():
   return dict()
+
 
 # icon handler
 @route('/icon')
@@ -36,6 +56,19 @@ def icon_output():
     return {'iconuri': iconuri, 'base': result.replace('/', '\/')}
 
 
+# webapp fetcher
+@route('/webapp')
+@view('webapp')
+def webapp():
+    return dict()
+
+@route('/apps/', method='post')
+def apps():
+    app_url = request.forms.get('app_url')
+    manifest = preload.fetch_webapp(app_url, DEFAULT_EXTERNAL_APP_PATH)
+    return {'name': manifest['name']}
+
+
 # homescreen handler
 @route('/homescreen')
 @view('homescreen')
@@ -45,11 +78,12 @@ def homescreen():
 @route('/apps-available')
 def apps_available():
     available = [
-        x.split(os.path.sep)[1:] for x in (glob.glob(os.path.join("gaia-raw", "apps", "*"))
-            + glob.glob(os.path.join("gaia-raw", "external-apps", "*"))
-            + glob.glob(os.path.join("gaia-raw", "showcase_apps", "*")))
+        x.split(os.path.sep)[1:] for x in (glob.glob(os.path.join(GAIA_RAW_DIR, "apps", "*"))
+            + glob.glob(os.path.join(GAIA_RAW_DIR, "external-apps", "*"))
+            + glob.glob(os.path.join(GAIA_RAW_DIR, "showcase_apps", "*")))
         if not x.endswith(".py")]
-    print available
+    # available += BUILD_IN_APPS
+    # print available
     return {"apps-available": available}
 
 # generate package
@@ -58,9 +92,9 @@ def customize():
     name = str(uuid.uuid4())
     fullpath = os.path.join("outputs", name)
     os.mkdir(fullpath)
-    os.mkdir(os.path.join(fullpath, "distribution"))
+    os.mkdir(os.path.join(fullpath, GAIA_DISTRIBUTION_DIR))
     os.mkdir(os.path.join(fullpath, "external-apps"))
-    homescreens_path = os.path.join(fullpath, "distribution", "homescreens.json")
+    homescreens_path = os.path.join(fullpath, GAIA_DISTRIBUTION_DIR, "homescreens.json")
     data = request.forms.get('homescreen')
     print data
     for homescreen in data:
@@ -93,16 +127,6 @@ def profiles(name):
     else:
         return "Not Found", 404
 
-@route('/webapp')
-@view('webapp')
-def webapp():
-    return dict()
-
-@route('/apps/', method='post')
-def apps():
-    app_url = request.forms.get('app_url')
-    manifest = preload.fetch_webapp(app_url, DEFAULT_EXTERNAL_APP_PATH)
-    return {'name': manifest['name']}
 
 #bookmark manager
 @route('/bookmark')
