@@ -7,6 +7,17 @@
   button{
     margin:10px;
   }
+	#content li{
+    padding:20px;
+    width: 300px;
+    list-style: none;
+  }
+  #content li:hover{
+    cursor: pointer;
+  }  
+  #content li.selected{
+    border:1px solid #f00;
+  }
 </style>
 <div id="form">
   <input type="text" value="" placeholder="enter title" id="site_title"><br/>
@@ -40,48 +51,84 @@ var bookMarkManager = {
 	bookMarksList : [],
   
   addItem : function bmm_addItem(item) {
-
 		if (!this.checkDedupe(item)) {
 			this.bookMarksList.push(item);
-			var newNode = this.genItem(item);
-    }
-		this.updateList();
+			this.updateList();
+		}
   },
 
-  removeItem : function bmm_removeItem(index) {
-		this.bookMarksList.splice(index, 1);
-  },
+  removeItem : function bmm_removeItem(e) {
+		e.stopPropagation();
+		var self = this;
+		var getItem = e.target.parentNode;
+		var getUri = getItem.childNodes[1].innerHTML;
+		var cursor = 0;
+		bookMarkManager.bookMarksList.forEach(function(name) {
+			if (name.uri === getUri) {
+				bookMarkManager.bookMarksList.splice(cursor, 1);
+				bookMarkManager.updateList();
+			}
+			cursor += 1;
+		}, bookMarkManager);
+	},
 
   checkDedupe : function bmm_checkDedupe(item) {
 		var dedupe = false;
+		var cursor = 0;
 		this.bookMarksList.forEach(function(name) {
 			if (name.uri === item.uri) {
 				name.title = item.title;
 				name.iconUri = item.iconUri;
 				dedupe = true;
+				this.updateList(cursor);
 				return dedupe;
 			}
+			cursor += 1;
 		}, this);
-
 		return dedupe;
 	},
 
-	updateList : function bmm_updateList () {
+	updateList : function bmm_updateList (index) {
+		if (index === undefined) {
+			index = this.bookMarksList.length - 1;
+		}
 		this.content.innerHTML = "";
+		var cursor = 0;
 		this.bookMarksList.forEach(function(name){
 			var newNode = this.genItem(name);
+			if (cursor == index) {
+				newNode.classList.add('selected');
+			}
 			this.content.appendChild(newNode);
+			cursor += 1;
 		}, this);
   },
 
 	genItem : function bmm_genItem(item) {
+		var self = this;
 		var newNode = document.createElement("li");
-		newNode.innerHTML = "<p>" + item.title + "</p>" +
+		var closeButton =  document.createElement("button");
+    closeButton.innerHTML = 'delete';
+    newNode.innerHTML = "<p>" + item.title + "</p>" +
 											"<p>" + item.uri + "</p>" +
-		                  "<p><img src='" + item.iconUri + "''>:" +
-											item.iconUri + "</p>";
-
+											"<p><img src='" + item.iconUri + "'>:" +
+		                  item.iconUri + "</p>";
+		closeButton.addEventListener('click', self.removeItem.bind(self), false);
+		newNode.appendChild(closeButton);
+		newNode.addEventListener('click', self.editItem, false);
 		return newNode;
+	},
+
+  editItem : function bmm_editItem(evt) {
+		var self = evt.currentTarget;
+		var getBookMarkList = self.parentNode.childNodes;
+    for (var i = 0; i < getBookMarkList.length; i++){
+			 getBookMarkList[i].classList.remove('selected');
+		}
+		self.classList.add('selected');
+		siteTitle.value = self.childNodes[0].innerHTML;
+		siteUri.value = self.childNodes[1].innerHTML;
+		siteIcon.value = self.childNodes[2].childNodes[0].src;
 	}
 };
     
