@@ -25,10 +25,10 @@
       <div class="navbar-inner">
       <a class="brand" href="/">Minilla</a>
       <ul class="nav">
-      <li><a href="/webapp">webapp convertor</a></li>
-      <li><a href="/icon">icon convertor</a></li>
-      <li><a href="/homescreen">homescreen</a></li>
-      <li><a href="/bookmark">bookmark</a></li>
+      <li><a href="/gadget/webapp">webapp convertor</a></li>
+      <li><a href="/gadget/icon">icon convertor</a></li>
+      <li><a href="/gaia/homescreen">homescreen</a></li>
+      <li><a href="/gaia/bookmark">bookmark</a></li>
       </ul>
       </div>
     </div>

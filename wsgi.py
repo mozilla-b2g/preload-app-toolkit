@@ -41,12 +41,12 @@ def index():
 
 
 # icon handler
-@route('/icon')
+@route('/gadget/icon')
 @view('icon')
 def icon_input():
     return dict()
 
-@route('/icon', method='post')
+@route('/gedget/icon', method='post')
 @view('icon_out')
 def icon_output():
     iconuri = request.forms.get('iconuri')
@@ -57,12 +57,12 @@ def icon_output():
 
 
 # webapp fetcher
-@route('/webapp')
+@route('/gadget/webapp')
 @view('webapp')
 def webapp():
     return dict()
 
-@route('/apps/', method='post')
+@route('/utils/apps/', method='post')
 def apps():
     app_url = request.forms.get('app_url')
     manifest = preload.fetch_webapp(app_url, DEFAULT_EXTERNAL_APP_PATH)
@@ -70,24 +70,27 @@ def apps():
 
 
 # homescreen handler
-@route('/homescreen')
+@route('/gaia/homescreen')
 @view('homescreen')
 def homescreen():
   return dict()
 
-@route('/apps-available')
-def apps_available():
-    available = [
-        x.split(os.path.sep)[1:] for x in (glob.glob(os.path.join(GAIA_RAW_DIR, "apps", "*"))
-            + glob.glob(os.path.join(GAIA_RAW_DIR, "external-apps", "*"))
-            + glob.glob(os.path.join(GAIA_RAW_DIR, "showcase_apps", "*")))
+def get_app_list(path=GAIA_RAW_DIR):
+    return [
+        x.split(os.path.sep)[1:] for x in (glob.glob(os.path.join(path, "apps", "*"))
+            + glob.glob(os.path.join(path, "external-apps", "*"))
+            + glob.glob(os.path.join(path, "showcase_apps", "*")))
         if not x.endswith(".py")]
+
+@route('/utils/apps-available')
+def apps_available():
+    available = get_app_list()
     # available += BUILD_IN_APPS
     # print available
     return {"apps-available": available}
 
 # generate package
-@route('/customize/', method='post')
+@route('/utils/customize/', method='post')
 def customize():
     name = str(uuid.uuid4())
     fullpath = os.path.join("outputs", name)
@@ -129,7 +132,7 @@ def profiles(name):
 
 
 #bookmark manager
-@route('/bookmark')
+@route('/gaia/bookmark')
 @view('bookmark')
 def bookmark():
   return dict()
