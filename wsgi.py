@@ -10,9 +10,22 @@ import os, glob, json
 
 # application object required by wsgi, appfog use gunicorn with wsgi
 application = app()
+
+from optparse import OptionParser
+_cmd_parser = OptionParser(usage="usage: %prog [options]")
+_cmd_parser.add_option('-g', '--gaia-dir',
+                       action='store', type='string', dest='GAIA_RAW_DIR',
+                       default='gaia-raw',
+                       help='Gaia raw data folder. Default=gaia-raw')
+_cmd_parser.add_option('-d', '--distribution',
+                       action='store', type='string', dest='GAIA_DISTRIBUTION_DIR',
+                       default='distribution',
+                       help='Distribution output folder. Default=distribution')
+(_cmd_options, _cmd_args) = _cmd_parser.parse_args()
+
 # setup environment
-GAIA_DISTRIBUTION_DIR = 'distribution'
-GAIA_RAW_DIR = 'gaia-raw'
+GAIA_RAW_DIR = _cmd_options.GAIA_RAW_DIR
+GAIA_DISTRIBUTION_DIR = _cmd_options.GAIA_DISTRIBUTION_DIR
 DEFAULT_EXTERNAL_APP_PATH = os.path.join(GAIA_RAW_DIR, 'external-apps')
 if not os.path.exists(DEFAULT_EXTERNAL_APP_PATH):
     os.makedirs(DEFAULT_EXTERNAL_APP_PATH)
@@ -51,7 +64,7 @@ def icon_input():
 def icon_output():
     iconuri = request.forms.get('iconuri')
     if iconuri.startswith('http'):
-    	result = preload.fetch_icon_from_url(iconuri)
+        result = preload.fetch_icon_from_url(iconuri)
         print result.replace('/', '\/')
     return {'iconuri': iconuri, 'base': result.replace('/', '\/')}
 
