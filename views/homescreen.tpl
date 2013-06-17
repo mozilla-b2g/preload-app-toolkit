@@ -97,7 +97,7 @@ var app_chosen = function () {};
 
 window.onload = function() {
   var x = new XMLHttpRequest();
-  x.open("GET", "/apps-available");
+  x.open("GET", "/utils/apps-available");
   x.send();
   x.onreadystatechange = function() {
     if (this.readyState === 4) {
@@ -119,7 +119,7 @@ function startup() {
 
     console.log(this.url.value);
     var x = new XMLHttpRequest();
-    x.open("POST", "/apps/");
+    x.open("POST", "/utils/apps/");
     x.send(this.url.value);
     x.onreadystatechange = function() {
       if (this.readyState === 4) {
@@ -239,11 +239,11 @@ function startup() {
   }
 }
 
-var build = getEl("build");
+/*var build = getEl("build");
 
 build.onclick = function(e) {
   var txt = JSON.stringify({"homescreens": apps_chosen}),
-      url = "/customize/",
+      url = "/utils/customize/",
       x = new XMLHttpRequest();
 
   build.disabled = true;
@@ -262,5 +262,5 @@ build.onclick = function(e) {
       }
     }
   }
-}
+}*/
     </script>

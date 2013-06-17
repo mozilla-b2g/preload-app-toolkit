@@ -2,7 +2,7 @@
 <div id="row-fluid">
     <div class="span12">
 	Enter Packaged Manifest URL or Hosted Manifest URL:
-	<form method="post" action="/apps/">
+	<form method="post" action="/utils/apps/">
 	  <input type="text" name="app_url">
 	  <input type="submit" value="Fetch" />
 	</form>
@@ -20,7 +20,7 @@ window.onload = function() {
   var div = document.getElementById("available");
 
   var x = new XMLHttpRequest();
-  x.open("GET", "/apps-available");
+  x.open("GET", "/utils/apps-available");
   x.send();
   x.onreadystatechange = function() {
     if (this.readyState === 4) {
