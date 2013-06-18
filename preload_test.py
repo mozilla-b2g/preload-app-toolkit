@@ -5,7 +5,9 @@ import base64
 import io
 from urlparse import urlparse
 import unittest
-
+from mock import patch
+from mock import MagicMock
+from mock import sentinel
 
 class PreloadTest(unittest.TestCase):
     def test_convert(self):
@@ -44,6 +46,29 @@ class PreloadTest(unittest.TestCase):
         assert preload.split_url('http://test.com/path/test.manifest')[0] == 'http://test.com'
         assert preload.split_url('http://test.com/test.manifest')[0] == 'http://test.com'
 
+    def test_fetch_icon_for_abosulte_url(self):
+        absolute_return_value = '/style/icons/128.png'
+        with patch('preload.get_absolute_url', return_value = absolute_return_value):
+            url = preload.fetch_icon(0,{0: ""},None,None,None)
+        assert url == absolute_return_value
+
+    @patch('preload.get_absolute_url', return_value = 'http://test.com/test.png')
+    @patch('preload.retrieve_from_url')
+    @patch('preload.convert_icon', return_value = sentinel.base64)
+    @patch('mimetypes.guess_type')
+    @patch('os.remove')
+    def test_fetch_icon_for_http_url(self, mock1, mock2, mock3, mock4, mock6):
+        my_mock = MagicMock()
+        with patch('__builtin__.open', my_mock):
+            manager = my_mock.return_value.__enter__.return_value
+            manager.read.return_value = 'binaryimagefile'
+            icon_base64 = preload.fetch_icon('0',{'0': ""},None,None,'')
+        assert icon_base64 == sentinel.base64
+
+    @patch('preload.fetch_icon_from_url', return_value = sentinel.from_url)
+    @patch('preload.get_absolute_url', return_value = 'test.png')
+    def test_fetch_icon_for_relative_path(self, mock1, mock2):
+        assert preload.fetch_icon('0',{'0': ""},None,None,'') == sentinel.from_url
 
 if __name__ == "__main__":
     unittest.main()

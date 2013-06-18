@@ -2,7 +2,7 @@
 
 ## Why need Gaia Preload App script
 
-Pre-bundled webapp are not quite the same as usual webapp, since Pre-bundled webapp may be seen before internet is ready. 
+Pre-bundled webapp are not quite the same as usual webapp, since Pre-bundled webapp may be seen before internet is ready.
 It have to store linked icon to buildin base-64 strings,
 provide correspondent matadata.json, prefetched appcache..., etc.
 
@@ -38,6 +38,13 @@ fetch icon from URL and convert it to base64 string
 
     $ python preload.py --icon http://<icon url>
 
+## Setup unit test
+```shell
+$ virtualenv .env
+$ source .env/bin/activate
+$ pip install mock
+$ python preload_test.py
+```
 
 # Experimental: Minilla web UI
 
@@ -46,5 +53,5 @@ We'd developing the Minilla web UI that help people ease the customization work 
 The Minilla only depends on python, so you can run
 
     $ python wsgi.py
-    
+
 open browser to http://localhost:8000 and use it.
