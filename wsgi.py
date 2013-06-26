@@ -12,7 +12,7 @@ import os, glob, json
 application = app()
 
 from optparse import OptionParser
-_cmd_parser = OptionParser(usage="usage: %prog [options]")
+_cmd_parser = OptionParser(usage='usage: %prog [options]')
 _cmd_parser.add_option('-g', '--gaia-dir',
                        action='store', type='string', dest='GAIA_RAW_DIR',
                        default='gaia-raw',
@@ -30,21 +30,21 @@ DEFAULT_EXTERNAL_APP_PATH = os.path.join(GAIA_RAW_DIR, 'external-apps')
 if not os.path.exists(DEFAULT_EXTERNAL_APP_PATH):
     os.makedirs(DEFAULT_EXTERNAL_APP_PATH)
 BUILD_IN_APPS = [
-    ["apps", "dialer"],
-    ["apps", "sms"],
-    ["apps", "contacts"],
-    ["apps", "browser"],
-    ["apps", "camera"],
-    ["apps", "gallery"],
-    ["apps", "fm"],
-    ["apps", "settings"],
-    ["external-apps", "marketplace"],
-    ["apps", "calendar"],
-    ["apps", "clock"],
-    ["apps", "costcontrol"],
-    ["apps", "email"],
-    ["apps", "music"],
-    ["apps", "video"]
+    ['apps', 'dialer'],
+    ['apps', 'sms'],
+    ['apps', 'contacts'],
+    ['apps', 'browser'],
+    ['apps', 'camera'],
+    ['apps', 'gallery'],
+    ['apps', 'fm'],
+    ['apps', 'settings'],
+    ['external-apps', 'marketplace'],
+    ['apps', 'calendar'],
+    ['apps', 'clock'],
+    ['apps', 'costcontrol'],
+    ['apps', 'email'],
+    ['apps', 'music'],
+    ['apps', 'video']
 ]
 
 @route('/')
@@ -90,58 +90,58 @@ def homescreen():
 
 def get_app_list(path=GAIA_RAW_DIR):
     return [
-        x.split(os.path.sep)[1:] for x in (glob.glob(os.path.join(path, "apps", "*"))
-            + glob.glob(os.path.join(path, "external-apps", "*"))
-            + glob.glob(os.path.join(path, "showcase_apps", "*")))
-        if not x.endswith(".py")]
+        x.split(os.path.sep)[1:] for x in (glob.glob(os.path.join(path, 'apps', '*'))
+            + glob.glob(os.path.join(path, 'external-apps', '*'))
+            + glob.glob(os.path.join(path, 'showcase_apps', '*')))
+        if not x.endswith('.py')]
 
 @route('/utils/apps-available')
 def apps_available():
     available = get_app_list()
     # available += BUILD_IN_APPS
     # print available
-    return {"apps-available": available}
+    return {'apps-available': available}
 
 # generate package
 @route('/utils/customize/', method='post')
 def customize():
     name = str(uuid.uuid4())
-    fullpath = os.path.join("outputs", name)
+    fullpath = os.path.join('outputs', name)
     os.mkdir(fullpath)
     os.mkdir(os.path.join(fullpath, GAIA_DISTRIBUTION_DIR))
-    os.mkdir(os.path.join(fullpath, "external-apps"))
-    homescreens_path = os.path.join(fullpath, GAIA_DISTRIBUTION_DIR, "homescreens.json")
+    os.mkdir(os.path.join(fullpath, 'external-apps'))
+    homescreens_path = os.path.join(fullpath, GAIA_DISTRIBUTION_DIR, 'homescreens.json')
     data = request.forms.get('homescreen')
     print data
     for homescreen in data:
         for appname in homescreen:
-            if appname and appname[0] == "external-apps":
+            if appname and appname[0] == 'external-apps':
                 result = commands.getoutput(
-                    "cd %(fullpath)s%(sep)sexternal-apps && ln -s ..%(sep)s..%(sep)s..%(sep)sexternal-apps%(sep)s%(app-name)s" % {
-                        "fullpath": fullpath,
-                        "sep": os.path.sep,
-                        "app-name": appname[1]})
+                    'cd %(fullpath)s%(sep)sexternal-apps && ln -s ..%(sep)s..%(sep)s..%(sep)sexternal-apps%(sep)s%(app-name)s' % {
+                        'fullpath': fullpath,
+                        'sep': os.path.sep,
+                        'app-name': appname[1]})
                 app.logger.debug(result)
     result = commands.getoutput(
-        "cd %(fullpath)s && zip -r %(name)s.zip distribution external-apps" % {
-            "fullpath": fullpath, "sep": os.path.sep, "name": name})
+        'cd %(fullpath)s && zip -r %(name)s.zip distribution external-apps' % {
+            'fullpath': fullpath, 'sep': os.path.sep, 'name': name})
     app.logger.debug(result)
     result = commands.getoutput(
-        "mv %(fullpath)s%(sep)s%(name)s.zip outputs" % {
-            "fullpath": fullpath, "sep": os.path.sep, "name": name})
+        'mv %(fullpath)s%(sep)s%(name)s.zip outputs' % {
+            'fullpath': fullpath, 'sep': os.path.sep, 'name': name})
     app.logger.debug(result)
 
-    return {"profile-url": "/profiles/" + name + ".zip"}
+    return {'profile-url': '/profiles/' + name + '.zip'}
 
 
 @route('/profiles/<name>.zip')
 def profiles(name):
-    name = name + ".zip"
-    if os.path.exists(os.path.join("outputs", name)):
-        # return flask.send_from_directory("outputs", name)
-        return "ready, get zip from " + name
+    name = name + '.zip'
+    if os.path.exists(os.path.join('outputs', name)):
+        # return flask.send_from_directory('outputs', name)
+        return 'ready, get zip from ' + name
     else:
-        return "Not Found", 404
+        return 'Not Found', 404
 
 
 #bookmark manager
