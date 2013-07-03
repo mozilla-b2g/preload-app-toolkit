@@ -219,7 +219,7 @@ def fetch_webapp(app_url, directory=None):
         logger.info('fetching manifest...')
         manifest_url = open_from_url(app_url)
         manifest = json.loads(manifest_url.read().decode('utf-8-sig'))
-        metadata['installOrigin'] = domain
+        metadata['installOrigin'] = 'https://marketplace.firefox.com'
         if 'etag' in manifest_url.headers:
             metadata['etag'] = manifest_url.headers['etag']
     else:
