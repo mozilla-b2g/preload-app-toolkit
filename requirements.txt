@@ -1,1 +1,3 @@
 mock
+coveralls
+coverage
