@@ -1,4 +1,4 @@
-# Gaia Preload webapp generation script [![Build Status](https://travis-ci.org/yurenju/gaia-preload-app.png)](https://travis-ci.org/yurenju/gaia-preload-app)
+# Gaia Preload webapp generation script [![Build Status](https://travis-ci.org/yurenju/gaia-preload-app.png)](https://travis-ci.org/yurenju/gaia-preload-app) [![Coverage Status](https://coveralls.io/repos/yurenju/gaia-preload-app/badge.png?branch=master)](https://coveralls.io/r/yurenju/gaia-preload-app?branch=master)
 
 ## Why need Gaia Preload App script
 
