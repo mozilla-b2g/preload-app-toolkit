@@ -1,4 +1,6 @@
-script: "python preload_test.py"
+script: "coverage run --source=preload.py preload_test.py"
 python:
   - "2.7"
 install: "sudo pip install -r requirements.txt --use-mirrors"
+after_success:
+  - coveralls
