@@ -4,7 +4,7 @@
 # minilla is a monster named from Ultraman gaia http://en.wikipedia.org/wiki/Minilla
 #
 
-from bottle import route, run, template, request, view, app
+from bottle import route, run, template, request, view, app, post, static_file, get
 import preload
 import os, glob, json
 
@@ -101,6 +101,26 @@ def apps_available():
     # available += BUILD_IN_APPS
     # print available
     return {"apps-available": available}
+
+@route('/js/<filename>')
+def server_static(filename):
+    return static_file(filename, root='views/js')
+
+@post('/config')
+def set_config():
+    f = open('config.json', 'w');
+    f.write(json.dumps({
+        'gaia_dir': request.forms.get('gaia_dir'),
+        'gaia_distribution_dir': request.forms.get('gaia_distribution_dir')
+    }))
+    f.close()
+
+@get('/config')
+def get_config():
+    f = open('config.json', 'r');
+    ret = f.read();
+    f.close();
+    return ret;
 
 # generate package
 @route('/utils/customize/', method='post')

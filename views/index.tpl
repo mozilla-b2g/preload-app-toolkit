@@ -11,14 +11,15 @@
   	  <fieldset>
   	  	<legend>Default paths</legend>
   		<label for="gaia_dir">Gaia DIR</label>
-		<input type="file" name="gaia_dir">
+		<input type="text" id="gaia_dir" name="gaia_dir">
 		<span class="help-block">specify gaia repository to get build-in app list, used for homescreen customization.</span>
 		<label for="gaia_distribution_dir">Gaia Distribution DIR</label>
-		<input type="file" name="gaia_distribution_dir">
+		<input type="text" id="gaia_distribution_dir" name="gaia_distribution_dir">
 		<span class="help-block">specify distribution dir for export customization result. read dir files for further customization.</span>
 		<br />
-		<!--button type="submit" class="btn">Analysis</button-->
+		<button id="update-config" class="btn btn-large btn-primary" type="button">Update config</button>
 	  </fieldset>
 	</form>
+	
   </div>
 </div>
