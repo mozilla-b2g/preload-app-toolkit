@@ -8,7 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="dns-prefetch" href="//ajax.googleapis.com">
     <link rel="dns-prefetch" href="//netdna.bootstrapcdn.com">
-
+    <script type="text/javascript" src='/js/minilla.js'></script>
     <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
     <link href='http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css' rel='stylesheet'>
     <!--script src='http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js'></script-->
