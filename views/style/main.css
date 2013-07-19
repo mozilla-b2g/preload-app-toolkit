@@ -1,0 +1,51 @@
+.homescreen-page {
+	-moz-box-sizing: border-box;
+	display: block;
+	float: left;
+	width: 320px;
+	height: 480px;
+	margin: 20px;
+	border-radius: 5px;
+	background-color: white;
+	box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.3);
+	padding: 15px;
+}
+
+#homescreen {
+	padding-left: 50px;
+}
+
+input[type="radio"] {
+	margin-left: 5px !important;
+}
+
+#homescreen-dock {
+	-moz-box-sizing: border-box;
+	display: block;
+	float: left;
+	width: 680px;
+	height: 100px;
+	margin: 20px;
+	border-radius: 5px;
+	background-color: white;
+	box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.3);
+	padding: 15px;
+	padding-top: 0;
+}
+
+.homescreen-page > .app, #homescreen-dock > .app {
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	background-color: #3A87AD;
+	border-radius: 5px;
+	color: white;
+	margin: 10px;
+	margin-top: 25px;
+	text-align:center;
+	line-height: 50px;
+}
+
+.badge {
+	margin-left: 10px;
+}

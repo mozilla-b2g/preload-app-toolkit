@@ -1,4 +1,4 @@
-# 
+#
 # Mozilla Firefox OS Gaia distribution configuration tool
 #
 # minilla is a monster named from Ultraman gaia http://en.wikipedia.org/wiki/Minilla
@@ -6,7 +6,7 @@
 
 from bottle import route, run, template, request, view, app, post, static_file, get
 import preload
-import os, glob, json
+import os, glob, json, os.path
 
 # application object required by wsgi, appfog use gunicorn with wsgi
 application = app()
@@ -106,6 +106,10 @@ def apps_available():
 def server_static(filename):
     return static_file(filename, root='views/js')
 
+@route('/style/<filename>')
+def server_static(filename):
+    return static_file(filename, root='views/style')
+
 @post('/config')
 def set_config():
     f = open('config.json', 'w');
@@ -115,12 +119,41 @@ def set_config():
     }))
     f.close()
 
+@post('/homescreen')
+def set_homescreen():
+    config = json.loads(get_config())
+    if os.path.exists(config['gaia_distribution_dir']):
+        f = open(os.path.join(config['gaia_distribution_dir'], 'homescreens.json'), 'w')
+        f.write(request.forms.get('homescreen'))
+        f.close()
+
 @get('/config')
 def get_config():
     f = open('config.json', 'r');
     ret = f.read();
     f.close();
     return ret;
+
+@get('/apps')
+def get_apps():
+    srcdirs = {}
+    srcdirs['gaia_dir'] = request.query.gaia.split(',')
+    srcdirs['gaia_distribution_dir'] = request.query.distribution.split(',')
+    config = json.loads(get_config())
+
+    gaia_apps = {}
+    for key in config:
+        basedir = config[key]
+        gaia_apps[key] = []
+        for srcdir in srcdirs[key]:
+            fulldir = os.path.join(basedir, srcdir)
+            if not os.path.exists(fulldir):
+                continue
+            gaia_apps[key].extend([[srcdir, d] for d in os.listdir(fulldir) if os.path.isdir(os.path.join(fulldir, d)) and d not in ['system', 'pdfjs', 'homescreen', 'keyboard', 'communications', 'bluetooth', 'wallpaper']])
+            if os.path.exists(os.path.join(fulldir, 'communications')):
+                gaia_apps[key].append([srcdir, 'communications', 'dialer'])
+                gaia_apps[key].append([srcdir, 'communications', 'contacts'])
+    return json.dumps(gaia_apps)
 
 # generate package
 @route('/utils/customize/', method='post')
