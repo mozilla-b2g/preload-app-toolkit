@@ -7,6 +7,7 @@
 from bottle import route, run, template, request, view, app, post, static_file, get
 import preload
 import os, glob, json, os.path
+import urllib2, base64
 
 # application object required by wsgi, appfog use gunicorn with wsgi
 application = app()
@@ -202,6 +203,20 @@ def profiles(name):
 @view('bookmark')
 def bookmark():
   return dict()
+
+@route('/marketplace/search/<query>')
+def query_marketplace(query):
+    url = 'https://marketplace.firefox.com/api/v1/apps/search/?device=firefoxos&q=' + query
+    request = urllib2.Request(url);
+    response = urllib2.urlopen(request)
+    result = json.loads(response.read())
+    return result
+
+@post('/marketplace/install/<manifestEncoded>')
+def install_from_marketplace(manifestEncoded):
+    manifestUrl = base64.b64decode(manifestEncoded)
+    preload.fetch_webapp(manifestUrl, os.path.join(GAIA_DISTRIBUTION_DIR, 'external-apps'))
+    return {'ok': 'true'}
 
 # run server
 if __name__ == '__main__':
