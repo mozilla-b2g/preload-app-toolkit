@@ -38,9 +38,16 @@ var Minilla = {
     if (homescreenSave) {
       homescreenSave.addEventListener('click', this.setHomescreen);
     }
+
+    this.marketPlaceText = document.getElementById('marketplace-search');
+    this.marketPlaceButton = document.getElementById('marketplace-search-btn');
+    this.marketPlaceButton.addEventListener('click', this.searchMarketplace.bind(this));
+
+    this.closeModal = document.getElementById('modalClose');
+    this.closeModal.addEventListener('click', this.closeMarketSuggestions);
   },
 
-  updateAvailableApps: function minilla_updateApps(gaia, distribution) {
+  updateAvailableApps: function minilla_updateApps(gaia, distribution, cb) {
     var self = this;
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/apps?gaia=' + gaia + '&distribution=' + distribution);
@@ -76,6 +83,10 @@ var Minilla = {
         }
         for (var i = 0; i < apps['gaia_distribution_dir'].length; i++) {
           addApp(apps['gaia_distribution_dir'][i], 'badge-success');
+        }
+
+        if(cb) {
+          cb();
         }
       }
     };
@@ -230,6 +241,104 @@ var Minilla = {
       evt.target.parentNode.classList.contains('homescreen-page')) {
       evt.target.parentNode.removeChild(evt.target);
     }
+  },
+
+  searchMarketplace: function searchMarketplace(evt) {
+    evt.preventDefault();
+    var query = this.marketPlaceText.value.trim();
+
+    $('#myModal').modal({'show': true});
+
+    if (query.length == 0) {
+      return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/marketplace/search/' + query);
+    xhr.send();
+    var that = this;
+    xhr.onreadystatechange = function() {
+      if (this.readyState === 4) {
+        var config = JSON.parse(this.responseText);
+        that.displayMarketSuggestions(config);
+      }
+    };
+  },
+
+  closeMarketSuggestions: function closeMarketSuggestions() {
+    var closeButton = document.getElementById('modalClose');
+    var modalContent = document.getElementById('myModalContent');
+    var modalLoading = document.getElementById('myModalLoading');
+    modalLoading.classList.remove('hide');
+    modalContent.innerHTML = '';
+    $('#myModal').modal('hide');
+  },
+
+  displayMarketSuggestions: function displayMarketSuggestions(market) {
+    // Setup the close button
+    var modalContent = document.getElementById('myModalContent');
+    var modalLoading = document.getElementById('myModalLoading');
+
+    modalLoading.classList.add('hide');
+
+    if (market.meta.total_count == 0) {
+      modalContent.textContent = 'No apps found';
+      return;
+    }
+
+    var ul = document.createElement('ul');
+    ul.classList.add('media-list');
+    market.objects.forEach(function onApp(app) {
+      var template = '<li class="media">' +
+        '<a class="pull-left" href="#">' +
+          '<img data-manifest="' + app.manifest_url + '" class="media-object" src="' + app.icons['64'] + '">' +
+        '</a>' +
+        '<div class="media-body">' +
+          '<h4 class="media-heading">' + app.name + '</h4>' +
+          '<div class="media">' + app.description + '</div>' +
+        '</div>' +
+      '</li>';
+      ul.innerHTML += template;
+    });
+
+    ul.addEventListener('click', this.installFromMarket.bind(this));
+
+    modalContent.appendChild(ul);
+
+  },
+
+  'installFromMarket': function installFromMarket(evt) {
+    var manifest = evt.target.dataset['manifest'];
+
+    if(!manifest) {
+      return;
+    }
+
+    var modalContent = document.getElementById('myModalContent');
+    modalContent.innerHTML = 'Installing from ' + manifest;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/marketplace/install/' + btoa(manifest));
+    xhr.send();
+    var that = this;
+    xhr.onreadystatechange = function() {
+      if (this.readyState === 4) {
+        try {
+          var result = JSON.parse(this.responseText);
+          if (result.ok) {
+            that.updateAvailableApps('apps,external-apps', 'external-apps', 
+              function onUpdated() {
+                alert('Succesfully installed');
+                that.closeMarketSuggestions();
+              });
+          } else {
+            modalContent.innerHTML = 'Could not install ' + manifest;
+          }
+        } catch (e) {
+          modalContent.innerHTML = 'Could not install ' + manifest + '(' + e + ')';
+        }
+      }
+    };
   }
 };
 

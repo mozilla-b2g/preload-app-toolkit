@@ -49,3 +49,7 @@ input[type="radio"] {
 .badge {
 	margin-left: 10px;
 }
+
+#marketplace-view {
+	padding-top: 20px;
+}
