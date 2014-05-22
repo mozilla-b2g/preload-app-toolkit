@@ -238,7 +238,7 @@ def fetch_webapp(app_url, directory=None):
     if 'package_path' in manifest or not url.scheme:
         manifest_filename = 'update.webapp'
         filename = 'application.zip'
-        metadata['origin'] = ''.join(['app://', appname])
+        metadata.pop('origin', None)
 
         if url.scheme:
             logger.info('downloading app...')
