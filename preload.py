@@ -33,6 +33,8 @@ def retrieve_from_url(url, target):
     """
     save file from url
     """
+    if (os.path.isdir(target)):
+        target += 'index.html'
     urllib.urlretrieve(url, target)
 
 
