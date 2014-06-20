@@ -287,6 +287,7 @@ def fetch_webapp(app_url, directory=None):
 
     # add manifestURL for update
     metadata['manifestURL'] = app_url
+    metadata['external'] = True
 
     f = file(os.path.join(app_dir, 'metadata.json'), 'w')
     f.write(json.dumps(metadata))
