@@ -95,9 +95,10 @@ class PreloadTest(unittest.TestCase):
         assert manifest['local_path'] == 'testapp/cache/manifest.appcache'
         assert manifest['url'] == 'http://test.com/test.manifest'
 
-    @patch('preload.retrieve_from_url')
+    @patch('preload.retrieve_from_url', return_value=('',''))
     @patch('os.makedirs')
-    def test_fetch_resource(self, mock2, mock1):
+    @patch('preload.format_resource_metadata', return_value='header')
+    def test_fetch_resource(self, mock3, mock2, mock1 ):
         preload.fetch_resource('http://test.com', '/workingdir/',
                                'local_dir/', 'test.manifest')
         mock1.assert_called_with('http://test.com/workingdir/test.manifest',
@@ -123,17 +124,18 @@ class PreloadTest(unittest.TestCase):
         mock1.assert_called_with('http://example.com/test.manifest',
                                  'local_dir/http://example.com/test.manifest')
 
-        result = preload.fetch_resource('http://test.com',
-                                        '/workingdir/',
-                                        'local_dir/',
-                                        'test/test.manifest')
+        (result, headers) = preload.fetch_resource('http://test.com',
+                                                   '/workingdir/',
+                                                   'local_dir/',
+                                                   'test/test.manifest')
         assert result == 'workingdir/test/test.manifest'
 
     def side_effect(*args):
-        return preload.get_resource_path_and_url(args[0], args[1], args[3])[1]
+        return (preload.get_resource_path_and_url(args[0], args[1], args[3])[1], "")
 
+    @patch('preload.format_resource_metadata', return_value='header')
     @patch('preload.fetch_resource', side_effect=side_effect)
-    def test_fetch_appcache(self, mock):
+    def test_fetch_appcache(self, mock, mock2):
         preload.set_logger_level(logging.ERROR)
         lines = [
             'CACHE MANIFEST',
@@ -148,7 +150,7 @@ class PreloadTest(unittest.TestCase):
             'FALLBACK:',
             '/ offline.html'
         ];
-        newlines = preload.fetch_appcache('http://test.com', '/remote_dir/', 'local_dir', lines)
+        (newlines, headers) = preload.fetch_appcache('http://test.com', '/remote_dir/', 'local_dir', lines)
         assert newlines[0] == 'CACHE MANIFEST'
         assert newlines[2] == 'absolute/test_1.html'
         assert newlines[3] == 'test_2.html'

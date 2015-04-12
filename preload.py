@@ -10,6 +10,8 @@ import json
 import codecs
 from urlparse import urlparse
 from zipfile import ZipFile
+from datetime import datetime
+import time
 import shutil
 import re
 import logging
@@ -35,7 +37,7 @@ def retrieve_from_url(url, target):
     """
     if (os.path.isdir(target)):
         target += 'index.html'
-    urllib.urlretrieve(url, target)
+    return urllib.urlretrieve(url, target)
 
 
 def open_from_url(url):
@@ -131,8 +133,9 @@ def fetch_resource(domain, workingdir, local_dir, resource_path):
         if not os.path.exists(local_resource_dir):
             os.makedirs(local_resource_dir)
 
-        retrieve_from_url(url, local_resource_path)
-        return path.lstrip('/')
+        (_filename, _headers) = retrieve_from_url(url, local_resource_path)
+        # I need to save the header at some place so they can be written (and processed at install time)
+        return (path.lstrip('/'), _headers)
     except IOError as e:
         logger.info('IO failed ', e)
     except urllib.URLError as e:
@@ -140,6 +143,7 @@ def fetch_resource(domain, workingdir, local_dir, resource_path):
 
 
 def get_appcache_manifest_dir(manifest_dir, appcache_path):
+    logger.info('Manifest dir: ' + manifest_dir + '. appcache_path: ' + appcache_path)
     if (appcache_path[0] != '/'):
         result = os.path.join(manifest_dir, os.path.dirname(appcache_path))
     else:
@@ -163,6 +167,16 @@ def get_appcache_manifest(domain, manifest_dir, app_dir, appcache_path):
     return manifest
 
 
+def format_resource_metadata(file, header):
+    """
+      documentation here
+    """
+
+    lastModified = header.getheader('last-modified', 'Epoch')
+    lastFetched = header.getheader('date', 'Now')
+    return '"' + file + '": { "lastModified": "' + lastModified + '", "lastFetched": "' + lastFetched + '"}'
+
+
 def fetch_appcache(domain, remote_dir, local_dir, lines):
     """
     fetch appcache file described in manifest.webapp
@@ -173,6 +187,7 @@ def fetch_appcache(domain, remote_dir, local_dir, lines):
     [appname]/cache/[resources] (if defined)
     """
     newlines = []
+    headers = []
     try:
         # retrieve resources from appcache
         curr = None
@@ -189,15 +204,16 @@ def fetch_appcache(domain, remote_dir, local_dir, lines):
 
             if curr == SECTIONS[0] or curr == SECTIONS[2]:
                 logger.info(' get resource ' + line + '...')
-                line = fetch_resource(domain, remote_dir, local_dir, line)
+                (line, header) = fetch_resource(domain, remote_dir, local_dir, line)
             elif curr == SECTIONS[3]:
                 logger.info(' get resource ' + line + '...')
-                fetch_resource(domain, remote_dir, local_dir,
+                (_line, header) = fetch_resource(domain, remote_dir, local_dir,
                                line.split(' ')[1])
             newlines.append(line)
+            headers.append(format_resource_metadata(line, header))
     except Exception as e:
         logger.info(' fetch failed ', e)
-    return newlines
+    return (newlines, headers)
 
 
 def fetch_webapp(app_url, directory=None):
@@ -264,6 +280,7 @@ def fetch_webapp(app_url, directory=None):
             key, manifest['icons'], domain, path, app_dir)
 
     if 'appcache_path' in manifest:
+        metadata_info = [];
         logger.info('fetching appcache...',)
         appcache_manifest = get_appcache_manifest(
             domain, path, app_dir, manifest['appcache_path'])
@@ -272,18 +289,23 @@ def fetch_webapp(app_url, directory=None):
 
         logger.info(' from ' + appcache_manifest['url'])
         logger.info(' save to ' + appcache_manifest['local_path'],)
-        retrieve_from_url(appcache_manifest[
-                          'url'], appcache_manifest['local_path'])
+        ( _filename, headerAC ) = retrieve_from_url(appcache_manifest['url'],
+                                                    appcache_manifest['local_path'])
         lines = []
         with open(appcache_manifest['local_path']) as fd:
             lines = fd.readlines()
 
-        lines = fetch_appcache(domain, appcache_manifest['remote_dir'],
-                               appcache_manifest['local_dir'], lines)
+        (lines, headers) = fetch_appcache(domain, appcache_manifest['remote_dir'],
+                                          appcache_manifest['local_dir'], lines)
         with open(appcache_manifest['local_path'], 'w') as fd:
             logger.info('overwrite new appcache')
             lines.append('')
             fd.write('\n'.join(lines))
+        with open(appcache_manifest['local_dir'] + '../resources_metadata.json', 'w') as resources:
+            resources.write('{\n');
+            headers.append(format_resource_metadata(appcache_manifest['local_path'], headerAC))
+            resources.write(',\n'.join(headers))
+            resources.write('\n}\n');
 
     # add manifestURL for update
     metadata['manifestURL'] = app_url
