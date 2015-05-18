@@ -15,6 +15,7 @@ import time
 import shutil
 import re
 import logging
+import argparse
 
 APPCACHE_LOCAL_DEFAULT_PATH = 'cache/'
 APPCACHE_LOCAL_DEFAULT_NAME = 'manifest.appcache'
@@ -321,13 +322,28 @@ def fetch_webapp(app_url, directory=None):
 
 
 def main():
+
+    parser = argparse.ArgumentParser(description = 'Preload webapps.')
+    parser.add_argument('--root', default=os.getcwd(),
+                        help = 'Root directory to run from')
+    parser.add_argument('--icon',
+                        help = 'Fetch webapp icon')
+    parser.add_argument('webapp', nargs = '?')
+    args = parser.parse_args()
+
+    os.chdir(args.root)
+
+    print args.root
+
     # icon convertion script
-    if (len(sys.argv) == 3 and sys.argv[1] == "--icon"):
-        result = fetch_icon_from_url(sys.argv[2])
+    if (args.icon):
+        result = fetch_icon_from_url(args.icon)
         logger.info(result.replace('/', '\/'))
+
     # fetch single webapp
-    elif (len(sys.argv) > 1):
-        fetch_webapp(sys.argv[1])
+    elif (args.webapp):
+        fetch_webapp(args.webapp)
+
     else:
         # automatically read and compose customized webapp from list
         # support csv like list format with ',' separator, ex:
@@ -340,6 +356,7 @@ def main():
                     fetch_webapp(line.split(',')[1].rstrip('\n'))
                 else:
                     break
+
 
 if __name__ == '__main__':
     main()

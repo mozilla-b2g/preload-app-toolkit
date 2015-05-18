@@ -32,6 +32,11 @@ Put `preload.py` script with `list` file in the same folder, then run the comman
 
 `preload.py` script will parse the `list` file and do the conversion for you.
 
+You can specify a `--root` folder in which `preload.py` will look for the `list` file
+and save the preloaded contents.
+
+    $ python preload.py --root=~/webapps/
+
 ### convert web icon to base64 string
 
 fetch icon from URL and convert it to base64 string
